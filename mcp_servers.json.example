@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "windows-mcp": {
+      "type": "stdio",
+      "command": "C:\\Users\\YOUR_USERNAME\\.dotnet\\tools\\Windows-MCP.Net.exe",
+      "args": [],
+      "env": {}
+    }
+  }
+}

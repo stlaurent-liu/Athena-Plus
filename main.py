@@ -1,13 +1,17 @@
 """
-Athena-Plus - Native Windows AI Agent
-Main entry point
+Athena-Plus 入口
+
+支持多种启动方式：
+1. 纯命令行启动
+2. WebAPI 服务启动
+3. PyWebView 桌面GUI启动
 """
 
 import argparse
 import uvicorn
 
-from athena.logger import logger
 from athena.config import settings
+from athena.logger import logger
 from athena.state import global_state, AppState
 
 
@@ -32,10 +36,9 @@ def run_mcp_server_std(host: str = None, port: int = None):
     host = host or settings.host
     port = port or settings.port
     
+    logger.info(f"Starting Standard MCP Server at http://{host}:{port}")
     from agent.executor import ToolExecutor
     executor = ToolExecutor()
-    
-    logger.info(f"Starting Standard MCP Server at http://{host}:{port}")
     logger.info(f"Mode: standard MCP server, exposes {len(executor.list_available_tools())} tools")
     global_state.set_state(AppState.RUNNING)
     
@@ -109,7 +112,7 @@ def main():
     parser = argparse.ArgumentParser(description="Athena-Plus Native Windows AI Agent")
     parser.add_argument(
         "mode",
-        choices=["mcp-std", "mcp-server", "web", "cli", "gui"],
+        choices=["mcp-server", "mcp-std", "web", "cli", "gui"],
         default="mcp-std",
         nargs="?",
         help="启动模式: \nmcp-std (默认，标准MCP协议服务端，供云端作为MCP服务器加载) \nmcp-server (自定义API) \nweb (WebAPI聊天界面) \ncli (命令行) \ngui (桌面GUI)"

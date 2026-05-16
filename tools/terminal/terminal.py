@@ -1,44 +1,63 @@
-import subprocess
-import sys
-from typing import Optional
+"""
+终端命令执行工具
+"""
 
-definition = {
-    "name": "terminal",
-    "description": "Execute PowerShell command on the local Windows system",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "command": {
-                "type": "string",
-                "description": "The PowerShell command to execute"
-            },
-            "timeout": {
-                "type": "number",
-                "description": "Command timeout in seconds (default 120)"
-            }
-        },
-        "required": ["command"]
-    }
-}
+import asyncio
+from typing import Dict, Any
 
-async def tool(command: str, timeout: int = 120) -> str:
-    try:
-        # On Windows, use powershell.exe
-        result = subprocess.run(
-            ["powershell.exe", "-Command", command],
-            capture_output=True,
-            text=True,
-            timeout=timeout
+from tools.base import BaseTool
+from agent.session import Session
+
+
+class TerminalTool(BaseTool):
+    """执行终端/命令行命令"""
+    
+    name = "terminal"
+    description = "执行PowerShell/命令行命令"
+    is_dangerous = True  # 终端命令默认危险，需要确认
+    
+    async def execute(self, params: Dict[str, Any], session: Session = None) -> Dict[str, Any]:
+        """执行命令"""
+        command = params.get("command")
+        if not command:
+            raise ValueError("Missing required parameter: command")
+        
+        cwd = params.get("cwd")
+        
+        logger = None
+        if session and hasattr(session, 'metadata'):
+            logger = session.metadata.get("logger", None)
+        
+        # Windows 使用 asyncio.create_subprocess_shell
+        process = await asyncio.create_subprocess_shell(
+            command,
+            cwd=cwd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
         
-        output = f"Exit code: {result.returncode}\n\n"
-        if result.stdout:
-            output += f"STDOUT:\n{result.stdout}\n"
-        if result.stderr:
-            output += f"\nSTDERR:\n{result.stderr}\n"
+        stdout, stderr = await process.communicate()
         
-        return output
-    except subprocess.TimeoutExpired:
-        return f"Command timed out after {timeout} seconds"
-    except Exception as e:
-        return f"Error executing command: {str(e)}"
+        return {
+            "command": command,
+            "exit_code": process.returncode,
+            "stdout": stdout.decode("utf-8", errors="replace"),
+            "stderr": stderr.decode("utf-8", errors="replace"),
+            "success": process.returncode == 0
+        }
+    
+    def get_json_schema(self) -> Dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "description": "要执行的命令"
+                },
+                "cwd": {
+                    "type": "string",
+                    "description": "工作目录（可选）"
+                }
+            },
+            "required": ["command"]
+        }
