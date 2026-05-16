@@ -24,13 +24,15 @@ Cloud AI Agent (Gabriel/Hermes/Claude Desktop) ←→ WireGuard VPN ←→ Athen
   - `mcp-client`: All inference goes to cloud Gabriel MCP, you chat in Athena window locally
   - `standalone`: Standalone inference with your own LLM API key, run completely local
   - `gui`: Desktop GUI chat
-- ✅ **13+ tools out of the box**:
+- ✅ **Third-party MCP server support** - Load any external MCP server (like Windows-MCP for desktop automation) via `mcp_servers.json`
+- ✅ **13+ built-in tools + 40+ desktop automation tools**:
   - 📁 File operations: read/write/list directory
   - 🖥️ Terminal: Execute PowerShell commands
   - ℹ️ System: CPU/memory/process info
   - 🪟 Windows-specific: Notification/Registry/Power management
   - 🧠 Ollama: Local model management/text generation
-- ✅ **Auto-start on boot** - Windows Task Scheduler setup guide included
+  - 🖱️ **Windows Desktop Automation**: Full mouse/keyboard/screenshot/OCR control via [Windows-MCP.Net](https://github.com/shuyu-labs/Windows-MCP.Net)
+- ✅ **Auto-start on boot** - Windows hidden startup guide included
 - ✅ **Lightweight** - Less than 50MB memory usage
 
 ## 🚀 Quick Start
@@ -73,6 +75,25 @@ See: [docs/autostart-windows.md](docs/autostart-windows.md)
 | `standalone` | Run standalone, local inference with your own API | ✅ Yes |
 | `gui` | Local desktop GUI chat | ✅ Yes (if standalone) |
 
+### Third-party MCP Servers Configuration
+
+Create `mcp_servers.json` (copy from `mcp_servers.json.example`) to add external MCP servers:
+
+```json
+{
+  "mcpServers": {
+    "windows-mcp": {
+      "type": "stdio",
+      "command": "C:\\Users\\YOUR_USERNAME\\.dotnet\\tools\\Windows-MCP.Net.exe",
+      "args": [],
+      "env": {}
+    }
+  }
+}
+```
+
+Supported types: `stdio` and `sse`. All tools from third-party MCP servers will be automatically loaded and available to your cloud AI agent.
+
 ### Cloud AI Configuration (on cloud side)
 
 Add this to your `config.yaml` MCP servers section:
@@ -86,7 +107,7 @@ mcp_servers:
     connect_timeout: 60
 ```
 
-## 🛠️ Available Tools
+## 🛠️ Available Built-in Tools
 
 | Tool | Description |
 |------|-------------|
@@ -103,6 +124,8 @@ mcp_servers:
 | `ollama_list_models` | List all local Ollama models |
 | `ollama_pull` | Pull model from Ollama |
 | `ollama_generate` | Generate text with local Ollama model |
+
+> **40+ additional desktop automation tools via Windows-MCP**: mouse move/click, keyboard input, screenshot, OCR text recognition, window management, color picking, etc. Enable it by adding to `mcp_servers.json`.
 
 ## 🤝 Contributing
 
